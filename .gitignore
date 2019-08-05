@@ -1,0 +1,11 @@
+
+.env
+temp/
+node_modules/
+data/
+sql_code/
+package-lock.json
+package.json
+ssl/
+
+
