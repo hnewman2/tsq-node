@@ -1,7 +1,12 @@
 const uploadForm = require('./uploadData.js');
-const port = 3001;
+//const port = 3001;
+
 const express = require('express');
+const https = require('https');
+const http = require('http');
+const fs = require('fs');
 const app = express();
+
 const cookieParser = require('cookie-parser');
 const path = require('path');
 const sessionManager = require('./login.js');
@@ -46,6 +51,10 @@ app.use(express.static("../tsq-react/build"));
 
 app.post('/FormUpload', (req, res) => {
     uploadForm(req, res);
+});
+
+app.post('/resetPassword',(req, res)=>{
+    sessionManager.login(req, res);
 });
 
 app.post('/login', (req, res) => {
@@ -234,7 +243,7 @@ app.post('/updateMessageStatus', (req, res) => {
 });
 
 app.post('/VolNameSearch', (req, res) => {
-    getData(req, res, 'SELECT concat(firstName,\' \',lastName)as volunteer, phone FROM tsq.Volunteers order by firstName, lastName ;');
+    getData(req, res, 'SELECT concat(lastName,\', \',firstName)as volunteer, phone FROM tsq.Volunteers order by lastName, firstName ;');
 });
 
 app.post('/create-pdf', (req, res) => {
@@ -255,6 +264,15 @@ app.get('/*', (req, res) => {
         });
 });
 
+
+let options = {
+    key: fs.readFileSync('../tsq/ssl/server.key'),
+    cert: fs.readFileSync('../tsq/ssl/server.crt')
+};
+
+http.createServer(app).listen(3001);
+https.createServer(options, app).listen(3002);
+/*
 app.listen(port, hostname, function() {
     console.log('Server running at http://' + hostname + ':' + port + '/');
-});
+});*/

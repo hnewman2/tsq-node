@@ -20,11 +20,14 @@ function login(req, res) {
 
         if (response) {
             password = response[0].password;
-            console.log('sqlpassword: ' + password);
-            console.log('yourpass: ' + req.body.password);
+
             if (req.body.password == password) {
-                console.log('password matches');
-                if (req.body.admin) {
+
+                if (req.body.resetPass) {
+
+                    resetPass(req, res);
+                }
+                else if (req.body.admin) {
                     loginAdmin(res);
                 } else {
                     loginUser(res);
@@ -40,6 +43,21 @@ function login(req, res) {
         }
     });
 
+}
+
+function resetPass(req, res) {
+    let query = 'UPDATE Logins set password = ? where userName = ?';
+    db.query(query, [req.body.newPass, req.body.userName], (error, response) => {
+
+        if (error) { console.log(error); }
+        if (response && response.affectedRows > 0) {
+
+            res.sendStatus(200);
+        } else {
+
+            res.sendStatus(500);
+        }
+    })
 }
 
 function loginUser(res) {
