@@ -4,22 +4,22 @@ const email = require('./sendEmail');
 
 
 function setUpPage(tableData, routeNum) {
-   //generate the html for the pdf with the mapped data
+    //generate the html for the pdf with the mapped data
 
-   return (
+    return (
 
-      `<div>
+        `<div>
          <h3>Route &nbsp; ${routeNum}</h3>
 
-         <table>
+         <table class='route-table'>
             <thead>
-               <tr>
-                  <th>Name</th>
-                  <th>Address</th>
-                  <th>City</th>
-                  <th>Family Size</th>
-                  <th>Phone Number</th>
-                  <th>Notes</th>
+               <tr class='route-table-header-row'>
+                  <th class='route-table-size'>QTY</th>
+                  <th class='route-table-name'>Name</th>
+                  <th class='route-table-address'>Address</th>
+                  <th class='route-table-city'>City</th>
+                  <th class='route-table-phone'>Phone Number</th>
+                  <th class='route-table-notes'>Notes</th>
                </tr>
             </thead>
             <tbody>
@@ -27,200 +27,219 @@ function setUpPage(tableData, routeNum) {
             </tbody>
          </table>
       </div>`
-   );
+    );
 }
 
 
+function getPhone(phone) {
+    var areaCode, three, four, newPhone;
+
+    switch (phone.length) {
+        case 7:
+            areaCode = '718';
+            three = phone.substring(0, 3);
+            four = phone.substring(3, 7);
+            break;
+        case 8:
+            areaCode = '718';
+            three = phone.substring(0, 3);
+            four = phone.substring(4, 8);
+            break;
+        case 10:
+            areaCode = phone.substring(0, 3);
+            three = phone.substring(3, 6);
+            four = phone.substring(6, 11);
+            break;
+        case 12:
+            areaCode = phone.substring(0, 3);
+            three = phone.substring(4, 7);
+            four = phone.substring(8, 12);
+            break;
+        case 0:
+            return phone;
+        default:
+            return phone;
+    }
+    newPhone = '(' + areaCode + ') ' + three + '-' + four;
+    return newPhone;
+}
 
 function createPDF(req, res) {
-   var routeNum = req.body.route;
-   //get the info
-   let query = 'SELECT * FROM CurrentRoutesDetailView WHERE route_ID = ?';
 
-   db.query(query, routeNum, (error, response) => {
 
-      console.log(error || response);
-      if (response && response.length > 0) {
-         var tableData = response.map(row => {
-            
-            return(`<tr>
-               <td>${row.fName} ${row.lName}</td>
-               <td>${row.addressLine1}, &nbsp; ${row.addressLine2}</td>
-               <td>${row.city}</td>
-               <td>${row.familySize}</td>
-               <td>${row.phone}</td>
-               <td>
-                  ${row.addressNotes} <br />
-                  ${row.centerNotes} <br />
-                  ${row.notes}
-               </td>
-            </tr>`);
-         });
+    var memoList = req.body.memos.map(m => `<p class='memos'>${m.body}</p>`);
+    var routeNum = req.body.route;
+    //get the info
+    let query = 'SELECT * FROM CurrentRoutesDetailView WHERE route_ID = ? ORDER BY familySize desc;';
 
-         const table = setUpPage(tableData, routeNum);
-         const htmlPdf =
-            ` <!doctype html>
-          <html>
-             <head>
-                <meta charset="utf-8">
-                <title>Tomchei Shabbos Deliveries</title>
-                <style>
-                </style> 
-             </head>
-             <body>
-               ${table}
-             </body>
-          </html>`;
+    db.query(query, routeNum, (error, response) => {
 
-         const filePath= './temp/TSQDeliveryRoute'+routeNum+'.pdf';
-         const fileName='TSQDeliveryRoute'+routeNum+'.pdf';
+                console.log(error || response);
+                if (response && response.length > 0) {
+                    var tableData = response.map(row => {
 
-          pdf.create(htmlPdf, {}).toFile(filePath, (err) => {
-            if(err) {
-                console.log(err);
-                res.sendStatus(500);
-            }
 
-            //send the email
-            email.sendEmailWithAttachment(req, req, filePath, fileName);
-          });
-         
-      }
+                                return (`<tr>
+                <td class='route-table-size'>${row.familySize}</td>
+                <td class='route-table-name'>${row.fName} ${row.lName}</td>
+                <td class='route-table-address'>${row.addressLine1}, &nbsp; ${row.addressLine2}</td>
+                <td class='route-table-city'>${row.city}</td>
+                <td class='route-table-phone'>${getPhone(row.phone)}</td>
+                <td class='uppercase route-table-notes'>
+                ${row.addressNotes ? `<p>${row.addressNotes}</p>` : ``}
+                ${row.centerNotes ? `<p>${row.centerNotes}</p>` : ``}
+                ${row.notes ? `<p>${row.notes}</p>` : ``}
+                </td>
+             </tr>`
+             );
+            }).join('');
 
-   });
-   
+            const table = setUpPage(tableData, routeNum);
+            const htmlPdf =
+                ` <!doctype html>
+           <html>
+              <head>
+                 <meta charset="utf-8">
+                 <title>Tomchei Shabbos Deliveries</title>
+                 <style>
+                 .route-table {
+                  margin-bottom: 20px;
+                  width: 100%;
+              }
+              
+              .route-table th,
+              .route-table td {
+                  margin-bottom: 2vh;
+                  border-right: 1px dashed #ddd;
+                  padding: .5% .5%;
+              }
+              
+              .route-table td {
+                  border-bottom: 10px solid #ddd;
+                  font-size: 12px;
+                  padding-top: 12px;
+                  padding-bottom: 16px;
+              }
+              
+              .route-table p {
+                  margin-bottom: 3px;
+              }
+              
+              
+              .route-table-header-row {
+                  font-size: 12px;
+                  background-color: lightgray;
+              }
+              
+              .route-table-size {
+                  width: 4%;
+                  text-align: center;
+              }
+              
+              .route-table-name {
+                  width: 18%;
+                  text-transform: capitalize;
+              }
+              
+              .route-table-address {
+                  width: 22%;
+                  text-transform: capitalize;
+              }
+              
+              .route-table-city {
+                  width: 14%;
+                  text-transform: capitalize;
+              }
+              .route-table-phone {
+                  width: 12%;
+                  text-align: center;
+              }
+              
+              .route-table-notes {
+                  width: 30%;
+              }
+              
+              .memos {
+                  width: 100%;
+                  text-align: center;
+                  border: 1px dashed #a9a9a9;
+                  margin-left: 2%;
+                  margin-right: 2%;
+                  width: 96%;
+                  min-height: 15px;
+              }
+              
+              .thick-bottom-border {
+                  background-color: darkgray;
+                  color: white;
+              }
+              
+              .uppercase {
+                  text-transform: uppercase;
+              }
+              
+              .contact-info-string {
+                  text-align: center;
+                  width: 90%;
+                  margin-left: 5%;
+                  margin-right: 5%;
+                  bottom: 0px;
+                  vertical-align: bottom;
+                  margin-bottom: 5px;
+              }
+              
+              .contact-info-string a {
+                  font-weight: bold;
+              }
+              
+              .route-table thead tr {
+                  border-bottom: solid 3px darkgray;
+              }
+              body {
+               
+               font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen", "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue", sans-serif;
+               -webkit-font-smoothing: antialiased;
+               -moz-osx-font-smoothing: grayscale;
+               font-size: 12px;
+           }
+              
+                 </style> 
+              </head>
+              <body>
+                ${table}
+                ${memoList}
+                <p class='contact-info-string' >
+                    <a> WHOSE TURN IS IT NEXT TIME? </a>
+                    <br />
+                    Please ask for your alternate's number in case you need to switch.
+                    <br />
+                    <a>Changes? </a>
+                    Call (718) 850-8070.
+                    <a> Anything Irregular? </a>
+                    Let us know at info@tsqinc.org.
+                 </p>
+              </body>
+           </html>`;
+
+
+            const filePath = './temp/TSQDeliveryRoute' + routeNum + '.pdf';
+            const fileName = 'TSQDeliveryRoute' + routeNum + '.pdf';
+
+            pdf.create(htmlPdf, {}).toFile(filePath, (err) => {
+                if (err) {
+                    console.log(err);
+                    res.sendStatus(500);
+                }
+
+                //send the email
+                email.sendEmailWithAttachment(req, res, filePath, fileName);
+            });
+
+        }
+
+    });
+
 
 }
 
 module.exports = createPDF;
-
-
-/*
- ` <!doctype html>
-    <html>
-       <head>
-          <meta charset="utf-8">
-          <title>Tomchei Shabbos Deliveries</title>
-          <style>
-             .invoice-box {
-             max-width: 800px;
-             margin: auto;
-             padding: 30px;
-             border: 1px solid #eee;
-             box-shadow: 0 0 10px rgba(0, 0, 0, .15);
-             font-size: 16px;
-             line-height: 24px;
-             font-family: 'Helvetica Neue', 'Helvetica',
-             color: #555;
-             }
-             .margin-top {
-             margin-top: 50px;
-             }
-             .justify-center {
-             text-align: center;
-             }
-             .invoice-box table {
-             width: 100%;
-             line-height: inherit;
-             text-align: left;
-             }
-             .invoice-box table td {
-             padding: 5px;
-             vertical-align: top;
-             }
-             .invoice-box table tr td:nth-child(2) {
-             text-align: right;
-             }
-             .invoice-box table tr.top table td {
-             padding-bottom: 20px;
-             }
-             .invoice-box table tr.top table td.title {
-             font-size: 45px;
-             line-height: 45px;
-             color: #333;
-             }
-             .invoice-box table tr.information table td {
-             padding-bottom: 40px;
-             }
-             .invoice-box table tr.heading td {
-             background: #eee;
-             border-bottom: 1px solid #ddd;
-             font-weight: bold;
-             }
-             .invoice-box table tr.details td {
-             padding-bottom: 20px;
-             }
-             .invoice-box table tr.item td {
-             border-bottom: 1px solid #eee;
-             }
-             .invoice-box table tr.item.last td {
-             border-bottom: none;
-             }
-             .invoice-box table tr.total td:nth-child(2) {
-             border-top: 2px solid #eee;
-             font-weight: bold;
-             }
-             @media only screen and (max-width: 600px) {
-             .invoice-box table tr.top table td {
-             width: 100%;
-             display: block;
-             text-align: center;
-             }
-             .invoice-box table tr.information table td {
-             width: 100%;
-             display: block;
-             text-align: center;
-             }
-             }
-          </style>
-       </head>
-       <body>
-          <div class="invoice-box">
-             <table cellpadding="0" cellspacing="0">
-                <tr class="top">
-                   <td colspan="2">
-                      <table>
-                         <tr>
-                            <td class="title"><img  src="https://i2.wp.com/cleverlogos.co/wp-content/uploads/2018/05/reciepthound_1.jpg?fit=800%2C600&ssl=1"
-                               style="width:100%; max-width:156px;"></td>
-                            <td>
-                               Datum: ${`${today.getDate()}. ${today.getMonth() + 1}. ${today.getFullYear()}.`}
-                            </td>
-                         </tr>
-                      </table>
-                   </td>
-                </tr>
-                <tr class="information">
-                   <td colspan="2">
-                      <table>
-                         <tr>
-                            <td>
-                               Customer name: ${name}
-                            </td>
-                            <td>
-                               Receipt number: ${receiptId}
-                            </td>
-                         </tr>
-                      </table>
-                   </td>
-                </tr>
-                <tr class="heading">
-                   <td>Bought items:</td>
-                   <td>Price</td>
-                </tr>
-                <tr class="item">
-                   <td>First item:</td>
-                   <td>${price1}$</td>
-                </tr>
-                <tr class="item">
-                   <td>Second item:</td>
-                   <td>${price2}$</td>
-                </tr>
-             </table>
-             <br />
-             <h1 class="justify-center">Total price: ${parseInt(price1) + parseInt(price2)}$</h1>
-          </div>
-       </body>
-    </html>`
-
-*/

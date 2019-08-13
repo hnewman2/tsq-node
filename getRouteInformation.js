@@ -2,7 +2,7 @@ const db = require('./dbConnection');
 
 function getRouteInformation(req, res) {
 
-    let query = 'SELECT * FROM CurrentRoutesDetailView WHERE route_ID = ?';
+    let query = 'SELECT * FROM CurrentRoutesDetailView WHERE route_ID = ? order by familySize desc';
 
     db.query(query, req.body, (error, response) => {
         if (error) { console.log(error); }
@@ -10,8 +10,7 @@ function getRouteInformation(req, res) {
         if (response && response.length > 0) {
             res.status(200);
             res.json(response);
-        }
-        else {
+        } else {
             res.sendStatus(500);
         }
     });

@@ -23,9 +23,7 @@ const getData = require('./getData');
 const sendText = require('./sendMassText');
 const email = require('./sendEmail');
 const updateVolStatus = require('./updateVolStatus');
-//const getContacts = require('./getContacts');
 const autoReply = require('./autoReply');
-//const inbox = require('./inbox');
 const bodyParser = require('body-parser');
 const updateInbox = require('./importInbox');
 const getMessageData = require('./getMessageData');
@@ -37,6 +35,9 @@ const updateMemo = require('./updateMemo');
 const getTodaysMemos = require('./getTodaysMemos');
 const createPdf = require('./generatePDF');
 const updateVolEmail = require('./updateVolEmail');
+const currVolTypes = require('./getCurrVolTypes');
+const getRecipientData = require('./getRecipientData');
+const updateVolInfo= require('./updateVolInfo');
 
 
 app.use(cookieParser());
@@ -53,7 +54,10 @@ app.post('/FormUpload', (req, res) => {
     uploadForm(req, res);
 });
 
-app.post('/resetPassword',(req, res)=>{
+app.post('/getAllVol',(req,res)=>{
+    getData(req,res, 'select * from Volunteers');
+});
+app.post('/resetPassword', (req, res) => {
     sessionManager.login(req, res);
 });
 
@@ -122,6 +126,10 @@ app.post('/getVolunteersFilterByVolType', (req, res) => {
     volunteers.filterByVolType(req, res);
 });
 
+app.post('/getVolunteersFilterByVolName', (req, res) => {
+    volunteers.filterByVolName(req, res);
+});
+
 app.post('/getVolunteersFilterByRoute', (req, res) => {
     volunteers.filterByRoute(req, res);
 });
@@ -179,6 +187,9 @@ app.post('/getShuls', (req, res) => {
 
 app.post('/editVol', (req, res) => {
     editVol(req, res);
+});
+app.post('/massUpdateVolInfo',(req,res)=>{
+    updateVolInfo(req,res);
 });
 
 app.post('/sendText', (req, res) => {
@@ -243,7 +254,19 @@ app.post('/updateMessageStatus', (req, res) => {
 });
 
 app.post('/VolNameSearch', (req, res) => {
-    getData(req, res, 'SELECT concat(lastName,\', \',firstName)as volunteer, phone FROM tsq.Volunteers order by lastName, firstName ;');
+    getData(req, res, 'SELECT concat(lastName,\', \',firstName)as volunteer, phone, vol_ID FROM tsq.Volunteers WHERE isActive order by lastName, firstName ;');
+});
+
+app.post('/getCurrVolunteerTypes', (req, res) => {
+    currVolTypes(req, res);
+});
+
+app.post('/getRecipientInfo', (req, res) => {
+    getRecipientData.thisRecipient(req, res);
+});
+
+app.post('/getRecipients', (req, res) => {
+    getRecipientData.allRecipients(req, res);
 });
 
 app.post('/create-pdf', (req, res) => {
