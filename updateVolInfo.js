@@ -6,7 +6,7 @@ function updateVolInfo(req, res) {
     /*console.log(req.body.key[0]);
     console.log(req.body.value);
     console.log(req.body.id);*/
-/*
+
     db.query(query, [req.body.value, req.body.id],
          (error, response) => {
         console.log(error || response);
@@ -21,7 +21,7 @@ function updateVolInfo(req, res) {
         else {
             res.sendStatus(500);
         }
-    });*/
+    });
 
 
 }

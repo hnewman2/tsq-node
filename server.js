@@ -55,7 +55,11 @@ app.post('/FormUpload', (req, res) => {
 });
 
 app.post('/getAllVol',(req,res)=>{
-    getData(req,res, 'select * from Volunteers');
+    getData(req,res, 'select vol_ID, firstName,lastName,Volunteers.address,\
+    Volunteers.city, abbr,Volunteers.zip,phone, sendSMS, Volunteers.email,sendEmail,isActive,\
+    primaryRouteID, Shuls.name from\
+     (Volunteers inner join States on Volunteers.state= States.state_ID)\
+     inner join Shuls on Volunteers.shul_ID=Shuls.shul_ID');
 });
 app.post('/resetPassword', (req, res) => {
     sessionManager.login(req, res);

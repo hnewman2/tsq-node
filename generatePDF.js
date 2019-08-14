@@ -201,6 +201,7 @@ function createPDF(req, res) {
                -webkit-font-smoothing: antialiased;
                -moz-osx-font-smoothing: grayscale;
                font-size: 12px;
+               margin: 15px;
            }
               
                  </style> 
