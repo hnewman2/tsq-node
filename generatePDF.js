@@ -81,7 +81,7 @@ function createPDF(req, res) {
 
                                 return (`<tr>
                 <td class='route-table-size'>${row.familySize}</td>
-                <td class='route-table-name'>${row.fName} ${row.lName}</td>
+                <td class='route-table-name'>${row.lName}, ${row.fName}</td>
                 <td class='route-table-address'>${row.addressLine1}, &nbsp; ${row.addressLine2}</td>
                 <td class='route-table-city'>${row.city}</td>
                 <td class='route-table-phone'>${getPhone(row.phone)}</td>
@@ -233,7 +233,7 @@ function createPDF(req, res) {
                 }
 
                 //send the email
-                email.sendEmailWithAttachment(req, res, filePath, fileName);
+                email(req, res, filePath, fileName);
             });
 
         }

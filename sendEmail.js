@@ -1,79 +1,98 @@
 nodemailer = require('nodemailer');
+const db = require('./dbConnection');
 
-function getEmailData(req, res) {
+function emailSettings(req, res, filePath, fileName) {
+    var user, from;
 
-  var recipients = req.body.recipients;
-  var subject = req.body.subject;
-  var body = req.body.body;
-  var password = req.body.password;
+    let query = 'select * from EmailConfig';
+    db.query(query, (error, response) => {
+        if (error) {
+            console.log(error);
+        }
+        if (response && response.length > 0) {
+            user = response[0].user;
+            from = response[0].fromName;
+
+            if (filePath && fileName) {
+                sendEmailWithAttachment(req, res, filePath, fileName, user, from)
+            } else {
+                getEmailData(req, res, user, from)
+            }
+        }
+    });
+}
 
 
-  var transporter = nodemailer.createTransport({
-    service: 'gmail',
-    auth: {
-      user: 'deliveries@tsqinc.org',
-      pass: password
-    }
-  });
+function getEmailData(req, res, user, from) {
 
-  var mailOptions = {
-    from: 'TSQ <deliveries@tsqinc.org>',
-    bcc: recipients,
-    subject: subject,
-    text: body,
-  };
+    var recipients = req.body.recipients;
+    var subject = req.body.subject;
+    var body = req.body.body;
+    var password = req.body.password;
 
-  transporter.sendMail(mailOptions, function (error, info) {
-    if (error) {
-      if (error) { console.log(error); }
-      res.sendStatus(401);
-    } else {
-      res.sendStatus(200);
-    }
-  });
+
+    var transporter = nodemailer.createTransport({
+        service: 'gmail',
+        auth: {
+            user: user,
+            pass: password
+        }
+    });
+
+    var mailOptions = {
+        from: from,
+        bcc: recipients,
+        subject: subject,
+        text: body,
+    };
+
+    transporter.sendMail(mailOptions, function(error, info) {
+        if (error) {
+            if (error) { console.log(error); }
+            res.sendStatus(401);
+        } else {
+            res.sendStatus(200);
+        }
+    });
 
 }
 
-function sendEmailWithAttachment(req, res, filePath, fileName){
+function sendEmailWithAttachment(req, res, filePath, fileName, user, from) {
 
-  var recipients = req.body.recipients;
-  var subject = req.body.subject;
-  var body = req.body.body;
-  var password = req.body.password;
-  
-  var transporter = nodemailer.createTransport({
-    service: 'gmail',
-    auth: {
-      user: 'deliveries@tsqinc.org',
-      pass: password
-    }
-  });
+    var recipients = req.body.recipients;
+    var subject = req.body.subject;
+    var body = req.body.body;
+    var password = req.body.password;
 
-  var mailOptions = {
-    from: 'TSQ <deliveries@tsqinc.org>',
-    bcc: recipients,
-    subject: subject,
-    text: body,
-    attachments:[
-      {   // file on disk as an attachment
-        filename: fileName,
-        path: filePath
-    }
-    ]
-  };
+    var transporter = nodemailer.createTransport({
+        service: 'gmail',
+        auth: {
+            user: user,
+            pass: password
+        }
+    });
 
-  transporter.sendMail(mailOptions, function (error, info) {
-    if (error) {
-      if (error) { console.log(error); }
-      res.sendStatus(401);
-    } else {
-      console.log(info)
-      res.sendStatus(200);
-    }
-  });
+    var mailOptions = {
+        from: from,
+        bcc: recipients,
+        subject: subject,
+        text: body,
+        attachments: [{ // file on disk as an attachment
+            filename: fileName,
+            path: filePath
+        }]
+    };
+
+    transporter.sendMail(mailOptions, function(error, info) {
+        if (error) {
+            if (error) { console.log(error); }
+            res.sendStatus(401);
+        } else {
+            console.log(info)
+            res.sendStatus(200);
+        }
+    });
 
 }
 
-module.exports = {getEmailData, sendEmailWithAttachment};
-
-
+module.exports = emailSettings;

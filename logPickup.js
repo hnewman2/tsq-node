@@ -1,7 +1,11 @@
 const db = require('./dbConnection');
 
 function logPickup(req, res) {
-    let query = 'INSERT INTO PickupLog (vol_ID, route_ID, partner_ID) VALUES (?,?,?);';
+    if (req.body.partner) {
+        var query = 'INSERT INTO PickupLog (vol_ID, route_ID, partner_ID) VALUES (?,?,?);';
+    } else {
+        var query = 'INSERT INTO PickupLog (vol_ID, route_ID) VALUES (?,?);';
+    }
 
     db.query(query, [req.body.vol_ID, req.body.route_ID, req.body.partner], (error, response) => {
         if (error) {

@@ -37,8 +37,8 @@ const createPdf = require('./generatePDF');
 const updateVolEmail = require('./updateVolEmail');
 const currVolTypes = require('./getCurrVolTypes');
 const getRecipientData = require('./getRecipientData');
-const updateVolInfo= require('./updateVolInfo');
-
+const updateVolInfo = require('./updateVolInfo');
+const updateEmailConfig = require('./updateEmailConfig');
 
 app.use(cookieParser());
 app.use(bodyParser.text());
@@ -54,8 +54,8 @@ app.post('/FormUpload', (req, res) => {
     uploadForm(req, res);
 });
 
-app.post('/getAllVol',(req,res)=>{
-    getData(req,res, 'select vol_ID, firstName,lastName,Volunteers.address,\
+app.post('/getAllVol', (req, res) => {
+    getData(req, res, 'select vol_ID, firstName,lastName,Volunteers.address,\
     Volunteers.city, abbr,Volunteers.zip,phone, sendSMS, Volunteers.email,sendEmail,isActive,\
     primaryRouteID, Shuls.name from\
      (Volunteers inner join States on Volunteers.state= States.state_ID)\
@@ -160,7 +160,7 @@ app.post('/getTodaysMemos', (req, res) => {
     getTodaysMemos(req, res);
 });
 app.post('/processedRoutes', (req, res) => {
-    getData(req, res, '  select route_ID, activityTime, concat(firstName,\' \', lastName) as name, phone from PickupLog\
+    getData(req, res, '  select route_ID, activityTime, concat(lastName,\', \',firstName ) as name, phone from PickupLog\
     inner join Volunteers on\
     PickupLog.vol_ID = Volunteers.vol_ID\
    where Date(activityTime) >= curdate();');
@@ -192,8 +192,8 @@ app.post('/getShuls', (req, res) => {
 app.post('/editVol', (req, res) => {
     editVol(req, res);
 });
-app.post('/massUpdateVolInfo',(req,res)=>{
-    updateVolInfo(req,res);
+app.post('/massUpdateVolInfo', (req, res) => {
+    updateVolInfo(req, res);
 });
 
 app.post('/sendText', (req, res) => {
@@ -201,7 +201,7 @@ app.post('/sendText', (req, res) => {
 });
 
 app.post('/sendEmail', (req, res) => {
-    email.getEmailData(req, res);
+    email(req, res);
 });
 
 app.post('/updateVolStatusActive', (req, res) => {
@@ -274,12 +274,19 @@ app.post('/getRecipients', (req, res) => {
 });
 
 app.post('/create-pdf', (req, res) => {
-    console.log('body: ' + req.body);
     createPdf(req, res);
 });
 
 app.post('/updateVolEmail', (req, res) => {
     updateVolEmail(req, res);
+});
+
+app.post('/getCurrEmailConfig', (req, res) => {
+    getData(req, res, 'SELECT * FROM EmailConfig;');
+});
+
+app.post('/updateEmailConfig', (req, res) => {
+    updateEmailConfig(req, res);
 });
 
 app.get('/*', (req, res) => {

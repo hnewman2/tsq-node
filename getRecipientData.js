@@ -8,7 +8,7 @@ function allRecipients(req, res) {
 
 function thisRecipient(req, res) {
 
-    let query = 'select route_ID, concat(fName,\' \',lName) as recipient, familySize, concat( addressLine1,\' \',addressLine2) as address, phone, addressNotes, centerNotes, notes from tsq.CurrentRoutesDetailView where detail_ID=?;';
+    let query = 'select route_ID, concat(lName,\', \',fName) as recipient, familySize, concat( addressLine1,\' \',addressLine2) as address, phone, addressNotes, centerNotes, notes from tsq.CurrentRoutesDetailView where detail_ID=?;';
     getRecipientFromDB(req, res, query);
 }
 
