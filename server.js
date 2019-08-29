@@ -39,6 +39,7 @@ const currVolTypes = require('./getCurrVolTypes');
 const getRecipientData = require('./getRecipientData');
 const updateVolInfo = require('./updateVolInfo');
 const updateEmailConfig = require('./updateEmailConfig');
+const updateVolState= require('./updateVolState');
 
 app.use(cookieParser());
 app.use(bodyParser.text());
@@ -58,8 +59,8 @@ app.post('/getAllVol', (req, res) => {
     getData(req, res, 'select vol_ID, firstName,lastName,Volunteers.address,\
     Volunteers.city, abbr,Volunteers.zip,phone, sendSMS, Volunteers.email,sendEmail,isActive,\
     primaryRouteID, Shuls.name from\
-     (Volunteers inner join States on Volunteers.state= States.state_ID)\
-     inner join Shuls on Volunteers.shul_ID=Shuls.shul_ID');
+     (Volunteers left outer join States on Volunteers.state= States.state_ID)\
+     left outer join Shuls on Volunteers.shul_ID=Shuls.shul_ID');
 });
 app.post('/resetPassword', (req, res) => {
     sessionManager.login(req, res);
@@ -194,6 +195,9 @@ app.post('/editVol', (req, res) => {
 });
 app.post('/massUpdateVolInfo', (req, res) => {
     updateVolInfo(req, res);
+});
+app.post('/updateVolState',(req,res)=>{
+    updateVolState(req,res);
 });
 
 app.post('/sendText', (req, res) => {
