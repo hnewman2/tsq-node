@@ -14,7 +14,7 @@ function setUpPage(tableData, routeNum) {
          <table class='route-table'>
             <thead>
                <tr class='route-table-header-row'>
-                  <th class='route-table-size'>QTY</th>
+                  <th class='route-table-size'>Ppl</th>
                   <th class='route-table-name'>Name</th>
                   <th class='route-table-address'>Address</th>
                   <th class='route-table-city'>City</th>
@@ -102,6 +102,7 @@ function createPDF(req, res) {
                  <meta charset="utf-8">
                  <title>Tomchei Shabbos Deliveries</title>
                  <style>
+
                  .route-table {
                   margin-bottom: 20px;
                   width: 100%;

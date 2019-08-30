@@ -56,11 +56,15 @@ app.post('/FormUpload', (req, res) => {
 });
 
 app.post('/getAllVol', (req, res) => {
-    getData(req, res, 'select vol_ID, firstName,lastName,Volunteers.address,\
-    Volunteers.city, abbr,Volunteers.zip,phone, sendSMS, Volunteers.email,sendEmail,isActive,\
-    primaryRouteID, Shuls.name from\
-     (Volunteers left outer join States on Volunteers.state= States.state_ID)\
-     left outer join Shuls on Volunteers.shul_ID=Shuls.shul_ID');
+    getData(req, res, 'select v1.vol_ID, firstName,lastName,v1.address,\
+    v1.city, abbr,v1.zip,phone, sendSMS, v1.email,sendEmail,isActive,\
+    primaryRouteID, Shuls.name, GROUP_CONCAT(v3.typeDescription ORDER BY v3.typeDescription separator \', \') as \'VolunteerType\' from\
+     (Volunteers as v1\
+     left outer join States on v1.state= States.state_ID)\
+     left outer join Shuls on v1.shul_ID=Shuls.shul_ID\
+     LEFT OUTER JOIN Volunteer_VolType as v2 ON v1.vol_ID = v2.vol_ID\
+     LEFT OUTER JOIN VolunteerType as v3 ON v2.type_ID = v3.type_ID\
+     group by v1.vol_ID;');
 });
 app.post('/resetPassword', (req, res) => {
     sessionManager.login(req, res);
@@ -111,7 +115,7 @@ app.post('/routeHistory', (req, res) => {
 });
 
 app.post('/getRoutes', (req, res) => {
-    getData(req, res, 'select route_ID from currentRoutesView where route_ID != -1 ;');
+    getData(req, res, 'select route_ID, type from currentRoutesView where route_ID != -1 ;');
 });
 
 app.post('/getVolunteersDEV', (req, res) => {
@@ -161,17 +165,18 @@ app.post('/getTodaysMemos', (req, res) => {
     getTodaysMemos(req, res);
 });
 app.post('/processedRoutes', (req, res) => {
-    getData(req, res, '  select route_ID, activityTime, concat(lastName,\', \',firstName ) as name, phone from PickupLog\
+    getData(req, res, ' select PickupLog.route_ID, type, activityTime, concat(lastName,\', \',firstName ) as name, phone from PickupLog\
     inner join Volunteers on\
     PickupLog.vol_ID = Volunteers.vol_ID\
-   where Date(activityTime) >= curdate();');
+    inner join currentRoutesView on PickupLog.route_ID = currentRoutesView.route_ID\
+    where Date(activityTime) >= curdate();');
 });
 
 app.post('/outstandingRoutes', (req, res) => {
-    getData(req, res, 'select route_ID from currentRoutesView\
-        where not exists( select route_ID from PickupLog where\
-        Date(activityTime) >= curdate()\
-        and currentRoutesView.route_ID = PickupLog.route_ID);');
+    getData(req, res, 'select route_ID, type from currentRoutesView\
+    where not exists( select route_ID from PickupLog where\
+    Date(activityTime) >= curdate()\
+    and currentRoutesView.route_ID = PickupLog.route_ID);');
 });
 
 app.post('/logPickup', (req, res) => {

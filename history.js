@@ -2,14 +2,20 @@ const db = require('./dbConnection');
 
 function history(req, res, whereClause) {
 
-    let query = 'with v (route_ID, date, volunteer, phone, sendSMS, isActive, partner_ID)\
-    as(select PickupLog.route_ID, substr(PickupLog.activityTime,1,10) as date,\
-         concat(Volunteers.lastName, \', \', Volunteers.firstName),  phone,\
-         sendSMS,  isActive, partner_ID from PickupLog  inner join Volunteers on Volunteers.vol_ID = PickupLog.vol_ID ' + whereClause +
-        ' ORDER BY date desc, route_ID ),\
-    v2 (route_ID, date, volunteer, phone, sendSMS, isActive, partner )\
+    let query = 
+    'with v (route_ID, date, volunteer, phone, sendSMS, isActive, partner_ID, type)\
+    as(\
+    select PickupLog.route_ID, \
+    substr(PickupLog.activityTime,1,10) as date,\
+         concat(Volunteers.lastName, \', \', Volunteers.firstName), \
+         phone,\
+         sendSMS,  isActive, partner_ID, type from PickupLog   inner join currentRoutesView on PickupLog.route_ID = currentRoutesView.route_ID\
+         inner join Volunteers on Volunteers.vol_ID = PickupLog.vol_ID ' + whereClause +
+         ' ORDER BY date desc, route_ID\
+        ),\
+    v2 (route_ID, date, volunteer, phone, sendSMS, isActive, partner,type )\
     as( select route_ID, date, volunteer, v.phone, v.sendSMS, v.isActive, \
-    concat(Volunteers.lastName, \', \', Volunteers.firstName) from \
+    concat(Volunteers.lastName, \', \', Volunteers.firstName), type from \
     v left join Volunteers on Volunteers.vol_ID= v.partner_ID )select * from v2  ORDER BY date desc, route_ID ;';
 
     db.query(query, req.body, (error, response) => {
