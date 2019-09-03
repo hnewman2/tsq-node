@@ -1,17 +1,20 @@
 const db = require('./dbConnection');
 const adminSessions = [];
 const userSessions = [];
-
+const dotenv = require('dotenv')
+dotenv.config();
+const key_str = process.env.KEY_STR;
 
 
 function login(req, res) {
 
+   
     //the below line should set the time zone for all node calls for a Date to EST.
     //process.env.TZ = 'America/Atikokan'
 
     //var today = new Date();
     //var todayString = (today.getMonth() + 1) + '/' + today.getDate() + '/' + today.getFullYear();
-    var query = 'select password from Logins where userName = ?';
+    var query = 'select AES_DECRYPT(password, \''+key_str+'\' )as password from Logins where userName = ?';
     var password;
 
 
@@ -46,7 +49,7 @@ function login(req, res) {
 }
 
 function resetPass(req, res) {
-    let query = 'UPDATE Logins set password = ? where userName = ?';
+    let query = 'UPDATE Logins set password = AES_ENCRYPT(?, \''+key_str+'\' ) where userName = ?';
     db.query(query, [req.body.newPass, req.body.userName], (error, response) => {
 
         if (error) { console.log(error); }

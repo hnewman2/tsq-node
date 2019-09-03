@@ -1,10 +1,13 @@
+const dotenv = require('dotenv')
+dotenv.config();
 nodemailer = require('nodemailer');
 const db = require('./dbConnection');
 
 function emailSettings(req, res, filePath, fileName) {
     var user, from;
+    var key_str = process.env.KEY_STR;
 
-    let query = 'select * from EmailConfig';
+    let query = 'select user, fromName, AES_DECRYPT(pswd, \''+key_str+'\' ) as pswd from EmailConfig';
     db.query(query, (error, response) => {
         if (error) {
             console.log(error);
@@ -12,23 +15,24 @@ function emailSettings(req, res, filePath, fileName) {
         if (response && response.length > 0) {
             user = response[0].user;
             from = response[0].fromName;
+            password = response[0].pswd;
 
             if (filePath && fileName) {
-                sendEmailWithAttachment(req, res, filePath, fileName, user, from)
+                sendEmailWithAttachment(req, res, filePath, fileName, user, from, password)
             } else {
-                getEmailData(req, res, user, from)
+                getEmailData(req, res, user, from, password)
             }
         }
     });
 }
 
 
-function getEmailData(req, res, user, from) {
+function getEmailData(req, res, user, from, password) {
 
     var recipients = req.body.recipients;
     var subject = req.body.subject;
     var body = req.body.body;
-    var password = req.body.password;
+    //var password = req.body.password;
 
 
     var transporter = nodemailer.createTransport({
@@ -57,12 +61,12 @@ function getEmailData(req, res, user, from) {
 
 }
 
-function sendEmailWithAttachment(req, res, filePath, fileName, user, from) {
+function sendEmailWithAttachment(req, res, filePath, fileName, user, from, password) {
 
     var recipients = req.body.recipients;
     var subject = req.body.subject;
     var body = req.body.body;
-    var password = req.body.password;
+    //var password = req.body.password;
 
     var transporter = nodemailer.createTransport({
         service: 'gmail',

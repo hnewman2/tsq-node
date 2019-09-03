@@ -40,6 +40,8 @@ const getRecipientData = require('./getRecipientData');
 const updateVolInfo = require('./updateVolInfo');
 const updateEmailConfig = require('./updateEmailConfig');
 const updateVolState= require('./updateVolState');
+const dotenv = require('dotenv')
+dotenv.config();
 
 app.use(cookieParser());
 app.use(bodyParser.text());
@@ -291,7 +293,8 @@ app.post('/updateVolEmail', (req, res) => {
 });
 
 app.post('/getCurrEmailConfig', (req, res) => {
-    getData(req, res, 'SELECT * FROM EmailConfig;');
+    let key_str = process.env.KEY_STR;
+    getData(req, res, 'select user, fromName, AES_DECRYPT(pswd, \''+key_str+'\' ) as pswd from EmailConfig;');
 });
 
 app.post('/updateEmailConfig', (req, res) => {
