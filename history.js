@@ -11,12 +11,12 @@ function history(req, res, whereClause) {
          phone,\
          sendSMS,  isActive, partner_ID, type from PickupLog   inner join currentRoutesView on PickupLog.route_ID = currentRoutesView.route_ID\
          inner join Volunteers on Volunteers.vol_ID = PickupLog.vol_ID ' + whereClause +
-         ' ORDER BY date desc, route_ID\
+         ' ORDER BY date desc, route_ID LIMIT 6500 \
         ),\
     v2 (route_ID, date, volunteer, phone, sendSMS, isActive, partner,type )\
     as( select route_ID, date, volunteer, v.phone, v.sendSMS, v.isActive, \
     concat(Volunteers.lastName, \', \', Volunteers.firstName), type from \
-    v left join Volunteers on Volunteers.vol_ID= v.partner_ID )select * from v2  ORDER BY date desc, route_ID ;';
+    v left join Volunteers on Volunteers.vol_ID= v.partner_ID )select * from v2  ORDER BY date desc, route_ID LIMIT 6500 ;';
 
     db.query(query, req.body, (error, response) => {
         if (error) { console.log(error); }
