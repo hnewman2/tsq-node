@@ -39,17 +39,22 @@ function parse(filePath, res) {
 			//insert the data into a temp table
 			let deleteQuery = 'DROP TABLE  IF EXISTS tempRoutes;';
 			db.query(deleteQuery, (error, response) => {
+				console.log("dropping table tempRoutes: \n_________________ \n\
+				"+error||response)
 				if (error) {
-					console.log(error);
+					//console.log(error);
 					res.sendStatus(500);
 				}
 				else {
 					let query = 'CREATE TABLE tempRoutes( route_ID int, routeType int not null, familySize int, fname tinytext, lname tinytext,\
-						address1 tinytext, address2 tinytext, city varchar(55), email varchar(75), phone1 varchar(25), \
+						address1 tinytext, address2 tinytext, city varchar(55), email varchar(75), phone1 varchar(25), phone2 varchar(25), \
 						addressNotes text, centerNote text, notes text, week varchar(10));';
 					db.query(query, (error, response) => {
+						console.log("recreating tempRoutes with new data:\n\
+						____________________________\
+						\n  "+error||response);
 						if (error) {
-							console.log(error);
+							
 							res.sendStatus(500);
 						}
 						else {
@@ -62,7 +67,7 @@ function parse(filePath, res) {
 							WHERE Recipients.recStatus = "yes"
 							*/
 
-							query = 'INSERT INTO tempRoutes (route_ID, routeType, familySize, fname, lname, address1, address2, city, email, phone1, addressNotes,\
+							query = 'INSERT INTO tempRoutes (route_ID, routeType, familySize, fname, lname, address1, address2, city, email, phone1, phone2, addressNotes,\
 								centerNote, notes, week) VALUES ?';
 
 							db.query(query, [myData], (error, response) => {
